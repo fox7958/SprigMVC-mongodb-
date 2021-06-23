@@ -6,12 +6,26 @@
 <%@ taglib prefix="spring"	uri="http://www.springframework.org/tags" %>
 <html>
 <head>
-<title>Home</title>
+	<!-- csrf토큰 -->
+	<meta id="_csrf" name="_csrf" th:content="${_csrf.token}" />
+	<meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}" />
+	<title>Home</title>
 <script src="<c:url value='/webjars/jquery/3.6.0/jquery.min.js'/>"></script>
 <script type="text/javaScript" language="javascript" defer="defer">
 $(document).ready(function(){
 	list();
 });
+
+function security(){
+	var token = $("meta[name='_csrf']").attr("content");
+	var header = $("meta[name='_csrf_header']").attr("content");
+	if(token && header){
+		$(document).ajaxSend(function(e, xhr, options){
+			xhr.setRequestHeader(header, token);
+		});
+	}
+}
+
 function save(){
 	if(!confirm("저장하시겠습니까?")){
 		return;
@@ -75,6 +89,27 @@ function del(){
 		alert("오류:"+errorThrown);
 	});
 }
+function mod(){
+	console.log($('#id').val());
+	if(!confirm("수정하시겠습니까?")){
+		return;
+	}
+	$.ajax({
+		url : "mod.do",
+		type : "POST",
+		data : {"id":$('#id').val(),"title":$('#title').val(),"content":$('#content').val()}
+	}).done(function(data){
+		console.log("@@@@@@");
+		if(data.returnCode == 'success'){
+			console.log('data ==== ', data);
+			location.reload();
+		}else{
+			alert(data.returnDesc);
+		}
+	}).fail(function(jqXHR, textStatus, errorThrown){
+		alert("오류 : "+ errorThrown);
+	});
+}
 </script>
 </head>
 <body>
@@ -82,6 +117,7 @@ function del(){
 		<div>
 			<label>title </label><input id="title" type="text">
 			<input id="id" type="hidden">
+			<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 		</div>
 		<div>
 			<label>content </label><input id="content" type="text">
