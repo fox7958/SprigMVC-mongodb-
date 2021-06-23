@@ -103,6 +103,8 @@ function mod(){
 		if(data.returnCode == 'success'){
 			console.log('data ==== ', data);
 			location.reload();
+		}else if(data.returnCode == 'null'){
+			alert(data.returnDesc);
 		}else{
 			alert(data.returnDesc);
 		}

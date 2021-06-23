@@ -47,20 +47,11 @@ public class HomeController {
 	
 	
 	/**
-	 * Simply selects the home view to render by returning its name.
+	 * 초기 Main화면으로 이동
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
-		logger.info("Welcome home! The client locale is {}.", locale);
-		
-		Date date = new Date();
-		DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
-		
-		String formattedDate = dateFormat.format(date);
-		
-		model.addAttribute("serverTime", formattedDate );
-		
-		return "home";
+		return "main";
 	}
 
 	/**
@@ -139,19 +130,6 @@ public class HomeController {
 	/**
 	 * 해당 게시글의 ID값을 받아와서 삭제
 	 * */
-	/*@RequestMapping(value = "/del.do", method = RequestMethod.POST)
-	public String del(@RequestParam(value="id", required = true) String id) {
-		System.out.println("del.do====");
-		String result;
-		if(id.equals(null)) {
-			result = "fail";
-		}else {
-			System.out.println("id ---> " + id);
-			result = "success";
-		}
-		System.out.println(result);
-		return result;
-	}*/
 	@RequestMapping(value = "/del.do", method = RequestMethod.POST) // POST로만 받겠다.
 	@ResponseBody
 	public Map<String, Object> del(@RequestParam(value="id", required = true) String id) throws Exception{
@@ -199,15 +177,21 @@ public class HomeController {
 		try {
 			System.out.println("id--->"+id);
 			
-			Document doc = new Document();					//Mongodb의 _id는 String타입이 아니라 ObjectId 타입이기 때문에 Document로 ObjectId를 만들어줘서 삭제해야함
+			Document doc = new Document();					//id값 가져와서 같은 아이디인 부분 삭제
 			doc.put("_id", new ObjectId(id));
 			System.out.println(doc.get("_id"));
 			
-			collection.updateOne(Filters.eq("_id", doc.get("_id")), new Document("$set", new Document("title", title).append("content", content)));
-			
-			map.put("returnCode", "success");
-			map.put("returnDesc", "데이터가 정상적으로 수정되었습니다."); 
-			System.out.println(map.get("returnCode"));
+			if(doc.get("_id").equals("")) {
+				map.put("returnCode", "null");
+				map.put("returnDesc", "수정할 게시글 없음");
+			}else {
+				/** 처음 _id값을 비교하여 삭제할 DB문서를 찾고 new Document ("$set", 으로 수정할 것이라는 쿼리를 알림, 다음 new Document에 수정 할 내용 담아서 update */
+				collection.updateOne(Filters.eq("_id", doc.get("_id")), new Document("$set", new Document("title", title).append("content", content).append("date", date)));
+				
+				map.put("returnCode", "success");
+				map.put("returnDesc", "데이터가 정상적으로 수정되었습니다."); 
+				System.out.println(map.get("returnCode"));
+			}
 		} catch (Exception e) {
 			map.put("returnCode", "failed");
 			map.put("returnDesc", "데이터 수정에 실패하였습니다.");
