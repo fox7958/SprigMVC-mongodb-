@@ -7,14 +7,14 @@
 <html>
 <head>
 	<!-- csrf토큰 -->
-	<meta id="_csrf" name="_csrf" th:content="${_csrf.token}" />
-	<meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}" />
+	<meta id="_csrf" name="_csrf" content="${_csrf.token}" />
+	<meta id="_csrf_header" name="_csrf_header" content="${_csrf.headerName}" />
 	
 	<title>Home</title>
 	
 <script src="<c:url value='/webjars/jquery/3.6.0/jquery.min.js'/>"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>		<!-- 페이징처리를 위해 pagination.js 사용 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.css"/><!-- 페이지 css디자인 -->
 
 <script type="text/javaScript" language="javascript" defer="defer">
 $(document).ready(function(){
@@ -72,17 +72,16 @@ function list(){
 				txt += "<td>" + data.list[i].title + "</td>" + "<td>" + "<span style=\"float:right\">"+ data.list[i].date +"</td>";
 				txt += "</tr>"
 				$('#list').append(txt);
-				array.push({name:txt});
+				array.push({name:txt});				//dataSource로 전달하기 위해 array에 담아준다.
 			}
-			console.log(array.length);
 			container.pagination({
-				dataSource: function(done){
+				dataSource: function(done){			//array에 {name: ~~ }방식으로 담은 것을 dataSource에 넣어줘야 게시글 출력
 					var result = [];
 					for(var i = 0; i < array.length; i++){
 						result.push(array[i]);
 					}
 					done(result)
-				},pageSize:5,
+				},pageSize:5,						//페이지당 게시글 5개씩
 				callback: function (data, pagination){
 					var dataHtml = '<tr>';
 					$.each(data,function(index, item){
@@ -171,16 +170,16 @@ function mod(){
 			</thead>
 			<tbody id="list">
 				<tr>
-					<td>1</td>
+					<td>게시글1_test</td>
 				</tr>
 				<tr>
-					<td>2</td>
+					<td>게시글2_test</td>
 				</tr>
 				<tr>
-					<td>3</td>
+					<td>게시글3_test</td>
 				</tr>
 				<tr>
-					<td>4</td>
+					<td>게시글4_test</td>
 				</tr>
 			</tbody>
 		</table>
