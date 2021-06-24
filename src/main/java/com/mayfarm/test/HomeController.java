@@ -1,5 +1,6 @@
 package com.mayfarm.test;
 
+import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,8 +13,14 @@ import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,7 +49,6 @@ public class HomeController {
 	MongoDatabase database = mongoClient.getDatabase("test");
 	MongoCollection<Document> collection = database.getCollection("board");
 	
-	
 	/**
 	 * 초기 Main화면으로 이동
 	 */
@@ -52,10 +58,31 @@ public class HomeController {
 	}
 
 	/**
+	 * Security Login
+	 * */
+	@RequestMapping(value = "/loginPage")
+	public String login() {
+		return "loginPage";
+	}
+	@RequestMapping(value = "/admin")
+	public String admin() {
+		return "admin";
+	}
+	@RequestMapping(value = "/user")
+	public String user() {
+		return "user";
+	}
+	@RequestMapping(value = "/all")
+	public String all() {
+		return "all";
+	}
+	
+	/**
 	 * MongoDB 데이터들 게시판목록에 뿌려줌
 	 * cursor로 가져온 jSon형식 데이터를 사용하기 편하게 JSONObject로 옮겨줌
 	 * MongoDB에 자동으로 생성된 ID는 _id라는 이름으로 가져와야하고, 앞에 불필요한(?) 부분을 제거해줌
 	 * */
+	@Secured("ROLE_ADMIN")
 	@RequestMapping("/list.do")
 	@ResponseBody
 	public Map<String, Object> list() throws Exception{

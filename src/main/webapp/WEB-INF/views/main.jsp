@@ -4,11 +4,12 @@
 <%@ taglib prefix="fn"		uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="form"	uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="spring"	uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="sec"	uri="http://www.springframework.org/security/tags" %>
 <html>
 <head>
 	<!-- csrf토큰 -->
-	<meta id="_csrf" name="_csrf" content="${_csrf.token}" />
-	<meta id="_csrf_header" name="_csrf_header" content="${_csrf.headerName}" />
+<meta id="_csrf" name="_csrf" content="${_csrf.token}" />
+<meta id="_csrf_header" name="_csrf_header" content="${_csrf.headerName}" /> 
 	
 	<title>Home</title>
 	
@@ -21,23 +22,18 @@ $(document).ready(function(){
 	list();
 });
 
-function security(){
-	var token = $("meta[name='_csrf']").attr("content");
-	var header = $("meta[name='_csrf_header']").attr("content");
-	if(token && header){
-		$(document).ajaxSend(function(e, xhr, options){
-			xhr.setRequestHeader(header, token);
-		});
-	}
-}
-
 function save(){
 	if(!confirm("저장하시겠습니까?")){
 		return;
 	}
+	var header = $("meta[name = '_csrf_header']").attr('content');
+	var token = $("meta[name= '_csrf']").attr('content');
 	$.ajax({
 		url : "add.do",
 		type : "POST",
+		beforeSend : function(xhr){
+			xhr.setRequestHeader(header,token);
+		},
 		data : {"title":$('#title').val(),"content":$('#content').val()}
 	}).done(function(data){
 		console.log("@@@@@@");
@@ -47,6 +43,7 @@ function save(){
 		}else{
 			alert(data.returnDesc);
 		}
+		
 	}).fail(function(jqXHR, textStatus, errorThrown){
 		alert("오류 : "+ errorThrown);
 	});
@@ -108,9 +105,14 @@ function del(){
 	if(!confirm("삭제하시겠습니까?")){
 		return;
 	}
+	var header = $("meta[name = '_csrf_header']").attr('content');
+	var token = $("meta[name= '_csrf']").attr('content');
 	$.ajax({
 		url : "del.do",
 		type : "POST",
+		beforeSend : function(xhr){
+			xhr.setRequestHeader(header,token);
+		},
 		data : {"id" : $('#id').val()}
 	}).done(function(data){
 		if(data.returnCode == 'success'){
@@ -127,9 +129,14 @@ function mod(){
 	if(!confirm("수정하시겠습니까?")){
 		return;
 	}
+	var header = $("meta[name = '_csrf_header']").attr('content');
+	var token = $("meta[name= '_csrf']").attr('content');
 	$.ajax({
 		url : "mod.do",
 		type : "POST",
+		beforeSend : function(xhr){
+			xhr.setRequestHeader(header,token);
+		},
 		data : {"id":$('#id').val(),"title":$('#title').val(),"content":$('#content').val()}
 	}).done(function(data){
 		console.log("@@@@@@");
