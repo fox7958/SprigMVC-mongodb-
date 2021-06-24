@@ -66,7 +66,7 @@ public class HomeController {
 		Map<String, Object> map = new HashMap<String, Object>();
 		List<BoardVO> list = new ArrayList<BoardVO>();
 
-		MongoCursor<Document> cursor = collection.find().iterator();
+		MongoCursor<Document> cursor = collection.find().sort(Filters.eq("date", -1)).iterator();	//전체 데이터를 조회할때 날짜순으로 가져옴
 		
 		try {
 			for(int i = 0; i < collection.countDocuments(); i++) {
@@ -110,9 +110,9 @@ public class HomeController {
 		System.out.println("add.do====");
 		Map<String, Object> map = new HashMap<String, Object>();
 		
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:MM");
-		Date time = new Date();
-		String date = format.format(time);
+		long systemTime = System.currentTimeMillis();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
+		String date = formatter.format(systemTime);
 		
 		try {	
 			Document doc = new Document("title", title).append("content", content).append("date", date);
@@ -170,9 +170,9 @@ public class HomeController {
 		System.out.println("mod.do====");
 		Map<String, Object> map = new HashMap<String, Object>();
 		
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:MM");
-		Date time = new Date();
-		String date = format.format(time);
+		long systemTime = System.currentTimeMillis();
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
+		String date = formatter.format(systemTime);
 		
 		try {
 			System.out.println("id--->"+id);

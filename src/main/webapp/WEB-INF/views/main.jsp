@@ -9,8 +9,13 @@
 	<!-- csrf토큰 -->
 	<meta id="_csrf" name="_csrf" th:content="${_csrf.token}" />
 	<meta id="_csrf_header" name="_csrf_header" th:content="${_csrf.headerName}" />
+	
 	<title>Home</title>
+	
 <script src="<c:url value='/webjars/jquery/3.6.0/jquery.min.js'/>"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.css"/>
+
 <script type="text/javaScript" language="javascript" defer="defer">
 $(document).ready(function(){
 	list();
@@ -56,14 +61,40 @@ function list(){
 		data: ''
 	}).done(function(data){
 		$('#list').children().remove();
-		for(var i = 0; i < data.list.length; i++){
-			var contents = data.list[i].content;
-			contents = contents.replace(/\n/gi, '\\n');
-			var txt = "<tr class=\"menu1\" onclick=\"detail('"+data.list[i].id+"','"+data.list[i].title+"','"+contents+"');\">";
-			txt += "<td>" + data.list[i].title + "</td>" + "<td>" + "<span style=\"float:right\">"+ data.list[i].date +"</td>";
-			txt += "</tr>"
-			$('#list').append(txt);
-		}
+		$(function(){
+			let container = $('#pagination');
+			var contents;
+			var array = new Array();
+			for(var i = 0; i < data.list.length; i++){
+				contents = data.list[i].content;
+				contents = contents.replace(/\n/gi, '\\n');
+				txt = "<tr class=\"menu1\" onclick=\"detail('"+data.list[i].id+"','"+data.list[i].title+"','"+contents+"');\">";
+				txt += "<td>" + data.list[i].title + "</td>" + "<td>" + "<span style=\"float:right\">"+ data.list[i].date +"</td>";
+				txt += "</tr>"
+				$('#list').append(txt);
+				array.push({name:txt});
+			}
+			console.log(array.length);
+			container.pagination({
+				dataSource: function(done){
+					var result = [];
+					for(var i = 0; i < array.length; i++){
+						result.push(array[i]);
+					}
+					done(result)
+				},pageSize:5,
+				callback: function (data, pagination){
+					var dataHtml = '<tr>';
+					$.each(data,function(index, item){
+						dataHtml += item.name;
+					});
+					dataHtml += '</tr>';
+					
+					$("#list").html(dataHtml);
+				}
+			})
+		})
+		
 	}).fail(function(jqXHR, textStatus, errorThrown){
 		alert("오류:"+errorThrown);
 	});
@@ -75,6 +106,9 @@ function detail(id, title, contents){
 }
 function del(){
 	console.log($('#id').val());
+	if(!confirm("삭제하시겠습니까?")){
+		return;
+	}
 	$.ajax({
 		url : "del.do",
 		type : "POST",
@@ -150,6 +184,7 @@ function mod(){
 				</tr>
 			</tbody>
 		</table>
+		<div id="pagination"></div>
 	</div>
 </body>
 </html>
