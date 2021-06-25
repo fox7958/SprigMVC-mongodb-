@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @SuppressWarnings("serial")
 public class CustomUserDetails implements UserDetails{
 
-	private String ID;
+	private String loginId;
 	private String PASSWORD;
 	private String AUTHORITY;
 	private boolean ENABLED;
@@ -30,7 +30,7 @@ public class CustomUserDetails implements UserDetails{
 	@Override
 	public String getUsername() {
 		// TODO Auto-generated method stub
-		return ID;
+		return loginId;
 	}
 	@Override
 	public boolean isAccountNonExpired() {
