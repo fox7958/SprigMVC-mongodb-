@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace = "user">
+	<select id="selectUserById" resultType="com.mayfarm.security.CustomUserDetails">
+		<![CDATA[
+            select * from user where ID = #{loginId}
+        ]]>
+	</select>
+</mapper>

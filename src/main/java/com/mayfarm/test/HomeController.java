@@ -1,6 +1,5 @@
 package com.mayfarm.test;
 
-import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,25 +7,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.mayfarm.test.vo.BoardVO;
+import com.mayfarm.user.Service.TestService;
+import com.mayfarm.user.bean.TestBean;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -40,7 +39,49 @@ import com.mongodb.client.model.Filters;
 @Controller
 public class HomeController {
 	
-	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
+	/**
+	 * MariaDB Connect
+	 * */
+	@Inject
+	TestService service;
+	
+	@RequestMapping(value="/test", method=RequestMethod.GET)
+	public String test(Model model) throws Exception{
+		List<TestBean> list;
+		list = service.test();
+		model.addAttribute("list", list);
+		return "test";
+	}
+	/**
+	 * 각 권한 별 페이지 이동
+	 * */
+	@RequestMapping(value = "/loginPage", method = RequestMethod.GET)
+	public String loginPage() {
+		return "loginPage";
+	}
+	@RequestMapping(value="/page")
+	public String page() throws Exception{
+		return "/page";
+	}
+	@RequestMapping(value="/user/page")
+	public String userPage() throws Exception{
+		return "/user/page";
+	}
+	@RequestMapping(value="/member/page")
+	public String memberPage() throws Exception{
+		return "/member/page";
+	}
+	@RequestMapping(value="/admin/page")
+	public String adminPage() throws Exception{
+		return "/admin/page";
+	}
+	/**
+	 * Error페이지
+	 * */
+	@RequestMapping(value = "/access_denied_page")
+	public String accessDeniedPage() throws Exception{
+		return "/access_denied_page";
+	}
 	
 	/**
 	 * MongoDB Connect 
@@ -53,37 +94,33 @@ public class HomeController {
 	 * 초기 Main화면으로 이동
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public String home(Locale locale, Model model) {
-		return "main";
+	public String home() {
+		return "index";
 	}
-
-	/**
-	 * Security Login
-	 * */
-	@RequestMapping(value = "/loginPage")
+	@RequestMapping(value = "/uesr/main.do")
 	public String login() {
-		return "loginPage";
-	}
-	@RequestMapping(value = "/admin")
-	public String admin() {
-		return "admin";
-	}
-	@RequestMapping(value = "/user")
-	public String user() {
-		return "user";
-	}
-	@RequestMapping(value = "/all")
-	public String all() {
-		return "all";
+		return "user/main";
 	}
 	
+	/*@RequestMapping(value = "/login", method = RequestMethod.POST)
+	public String login(Locale locale, Model model) {
+		System.out.println("login---success");
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if(principal instanceof UserDetails) {
+			String username = ((UserDetails)principal).getUsername();
+			System.out.println("if==="+username);
+		}else {
+			String username = principal.toString();
+			System.out.println("else==="+username);
+		}
+		return "user/main";
+	}*/
 	/**
 	 * MongoDB 데이터들 게시판목록에 뿌려줌
 	 * cursor로 가져온 jSon형식 데이터를 사용하기 편하게 JSONObject로 옮겨줌
 	 * MongoDB에 자동으로 생성된 ID는 _id라는 이름으로 가져와야하고, 앞에 불필요한(?) 부분을 제거해줌
 	 * */
-	@Secured("ROLE_ADMIN")
-	@RequestMapping("/list.do")
+	@RequestMapping("list.do")
 	@ResponseBody
 	public Map<String, Object> list() throws Exception{
 		System.out.println("list.do====");
@@ -126,7 +163,7 @@ public class HomeController {
 	 * 사용자가 작성한 내용을 MongoDB에 저장
 	 * id값은 데이터베이스에 저장될 때 자동 생성됨
 	 * */
-	@RequestMapping(value = "/add.do", method = RequestMethod.POST) // POST로만 받겠다.
+	@RequestMapping(value = "add.do", method = RequestMethod.POST) // POST로만 받겠다.
 	@ResponseBody
 	public Map<String, Object> add(
 			@RequestParam(value="title", required = true) String title,
@@ -154,7 +191,7 @@ public class HomeController {
 	/**
 	 * 해당 게시글의 ID값을 받아와서 삭제
 	 * */
-	@RequestMapping(value = "/del.do", method = RequestMethod.POST) // POST로만 받겠다.
+	@RequestMapping(value = "del.do", method = RequestMethod.POST) // POST로만 받겠다.
 	@ResponseBody
 	public Map<String, Object> del(@RequestParam(value="id", required = true) String id) throws Exception{
 		System.out.println("del.do====");
@@ -185,7 +222,7 @@ public class HomeController {
 	/**
 	 * MongoDB 같은 Id값 찾아서 수정
 	 * */
-	@RequestMapping(value = "/mod.do", method = RequestMethod.POST) // POST로만 받겠다.
+	@RequestMapping(value = "mod.do", method = RequestMethod.POST) // POST로만 받겠다.
 	@ResponseBody
 	public Map<String, Object> mod(
 			@RequestParam(value="id", required = true) String id,

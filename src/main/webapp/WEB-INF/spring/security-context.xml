@@ -1,40 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/security"
-             xmlns:beans="http://www.springframework.org/schema/beans"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://www.springframework.org/schema/beans
-                                 http://www.springframework.org/schema/beans/spring-beans.xsd
-                                 http://www.springframework.org/schema/security
-                                 http://www.springframework.org/schema/security/spring-security.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:security="http://www.springframework.org/schema/security"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+							http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+							http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
         
-        <http auto-config="true" use-expressions="true">
-        	<intercept-url pattern="/**" access="permitAll" />
-        	<intercept-url pattern="/member/**" access="hasAnyRole('ROLE_MEMBER', 'ROLE_ADMIN')" />
-        	<intercept-url pattern="/user/**" access="hasAnyRole('ROLE_USER','ROLE_MEMBER', 'ROLE_ADMIN')" />
-        	<intercept-url pattern="/admin/**" access="hasAnyRole('ROLE_ADMIN')" /> 
-            
-            <form-login
-            username-parameter="id"
-            password-parameter="pw"
-            login-processing-url="/main"
-            login-page="/loginPage"
-            default-target-url="/all"/>
-            <logout
-            logout-url="/logout"
-            logout-success-url="/all"
-            delete-cookies=""
-            />
-            <csrf/>
-        </http>
         
-        <authentication-manager>
-            <authentication-provider>
-                <user-service>
-                    <user name="user" password="user" authorities="ROLE_USER"/>
-                    <user name="member" password="member" authorities="ROLE_MEMBER"/>
-                    <user name="admin" password="admin" authorities="ROLE_ADMIN"/>
-                </user-service>
-            </authentication-provider>
-        </authentication-manager>
-    
-</beans:beans>
+        <security:http auto-config="true" use-expressions="true">
+        	<security:intercept-url pattern="/member/**" access="hasAnyRole('ROLE_MEMBER')" />
+        	<security:intercept-url pattern="/user/**" access="hasAnyRole('ROLE_USER')" />
+        	<security:intercept-url pattern="/admin/**" access="hasAnyRole('ROLE_ADMIN')" />
+        	<security:intercept-url pattern="/**" access="permitAll" />
+        	<security:form-login
+        		username-parameter="loginId"
+        		password-parameter="loginPwd"
+        		login-processing-url="/login"
+        		login-page="/loginPage"
+        		default-target-url="/uesr/main.do"
+        	/>
+        	<security:logout
+        		logout-url="/logout"
+        		logout-success-url="/"
+        	/>
+        	<security:access-denied-handler
+        		error-page="/access_denied_page"
+        	/>
+        </security:http>
+        
+        <security:authentication-manager>
+        	<security:authentication-provider ref="userAuthProvider" />
+            <security:authentication-provider user-service-ref="userService">
+       			<!-- <security:user-service>
+            	<user name="user" password="user" authorities="ROLE_USER"/>
+	           	<user name="member" password="member" authorities="ROLE_MEMBER"/>
+	           	<user name="admin" password="admin" authorities="ROLE_ADMIN"/>
+	        	</security:user-service> -->
+  		  	</security:authentication-provider>
+        </security:authentication-manager>
+        
+        <security:jdbc-user-service data-source-ref="dataSource" id="userService"
+        	users-by-username-query="SELECT ID as loginID, PASSWORD as loginPwd, ENABLED FROM user WHERE ID=?"
+        	authorities-by-username-query="SELECT ID as loginID, AUTHORITY FROM user WHERE ID=?"
+        />
+        
+    	<bean id="userService" class="com.mayfarm.security.CustomUserDetailsService" />
+		<bean id="userAuthProvider" class="com.mayfarm.security.provider.CustomAuthenticationProvider"/>
+    	
+    	<context:component-scan base-package="com.mayfarm.security.DAO"/>
+</beans>
+
+
+
+
+

@@ -7,11 +7,11 @@
 <%@ taglib prefix="sec"	uri="http://www.springframework.org/security/tags" %>
 <html>
 <head>
-	<!-- csrf토큰 -->
+	<!-- csrf토큰
 <meta id="_csrf" name="_csrf" content="${_csrf.token}" />
-<meta id="_csrf_header" name="_csrf_header" content="${_csrf.headerName}" /> 
+<meta id="_csrf_header" name="_csrf_header" content="${_csrf.headerName}" />  -->
 	
-	<title>Home</title>
+<title>Home</title>
 	
 <script src="<c:url value='/webjars/jquery/3.6.0/jquery.min.js'/>"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>		<!-- 페이징처리를 위해 pagination.js 사용 -->
@@ -21,7 +21,6 @@
 $(document).ready(function(){
 	list();
 });
-
 function save(){
 	if(!confirm("저장하시겠습니까?")){
 		return;
@@ -49,12 +48,17 @@ function save(){
 	});
 }
 function list(){
+	var header = $("meta[name = '_csrf_header']").attr('content');
+	var token = $("meta[name= '_csrf']").attr('content');
 	$.ajax({
 		url: "<c:url value='/list.do'/>",
 		processData: false,
 		contentType: false,
 		method: "GET",
 		cache: false,
+		beforeSend : function(xhr){
+			xhr.setRequestHeader(header,token);
+		},
 		data: ''
 	}).done(function(data){
 		$('#list').children().remove();
