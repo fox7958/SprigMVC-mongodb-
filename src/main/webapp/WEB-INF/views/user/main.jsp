@@ -7,9 +7,9 @@
 <%@ taglib prefix="sec"	uri="http://www.springframework.org/security/tags" %>
 <html>
 <head>
-	<!-- csrf토큰
+	<!-- csrf토큰  -->
 <meta id="_csrf" name="_csrf" content="${_csrf.token}" />
-<meta id="_csrf_header" name="_csrf_header" content="${_csrf.headerName}" />  -->
+<meta id="_csrf_header" name="_csrf_header" content="${_csrf.headerName}" /> 
 	
 <title>Home</title>
 	
@@ -28,7 +28,7 @@ function save(){
 	var header = $("meta[name = '_csrf_header']").attr('content');
 	var token = $("meta[name= '_csrf']").attr('content');
 	$.ajax({
-		url : "add.do",
+		url : "<c:url value='/add.do'/>",
 		type : "POST",
 		beforeSend : function(xhr){
 			xhr.setRequestHeader(header,token);
@@ -112,7 +112,7 @@ function del(){
 	var header = $("meta[name = '_csrf_header']").attr('content');
 	var token = $("meta[name= '_csrf']").attr('content');
 	$.ajax({
-		url : "del.do",
+		url : "<c:url value='/del.do'/>",
 		type : "POST",
 		beforeSend : function(xhr){
 			xhr.setRequestHeader(header,token);
@@ -136,7 +136,7 @@ function mod(){
 	var header = $("meta[name = '_csrf_header']").attr('content');
 	var token = $("meta[name= '_csrf']").attr('content');
 	$.ajax({
-		url : "mod.do",
+		url : "<c:url value='/mod.do'/>",
 		type : "POST",
 		beforeSend : function(xhr){
 			xhr.setRequestHeader(header,token);

@@ -30,14 +30,8 @@
         </security:http>
         
         <security:authentication-manager>
-        	<security:authentication-provider ref="userAuthProvider" />
-            <security:authentication-provider user-service-ref="userService">
-       			<!-- <security:user-service>
-            	<user name="user" password="user" authorities="ROLE_USER"/>
-	           	<user name="member" password="member" authorities="ROLE_MEMBER"/>
-	           	<user name="admin" password="admin" authorities="ROLE_ADMIN"/>
-	        	</security:user-service> -->
-  		  	</security:authentication-provider>
+      		<security:authentication-provider user-service-ref="userService">
+      		</security:authentication-provider>
         </security:authentication-manager>
         
         <security:jdbc-user-service data-source-ref="dataSource" id="userService"
@@ -45,9 +39,6 @@
         	authorities-by-username-query="SELECT ID as loginID, AUTHORITY FROM user WHERE ID=?"
         />
         
-    	<bean id="userService" class="com.mayfarm.security.CustomUserDetailsService" />
-		<bean id="userAuthProvider" class="com.mayfarm.security.provider.CustomAuthenticationProvider"/>
-    	
     	<context:component-scan base-package="com.mayfarm.security.DAO"/>
 </beans>
 
