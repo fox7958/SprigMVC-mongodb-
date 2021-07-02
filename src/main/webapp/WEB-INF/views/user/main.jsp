@@ -181,16 +181,13 @@ function mod(){
 			</thead>
 			<tbody id="list">
 				<tr>
-					<td>게시글1_test</td>
+					<td>Board Load...</td>
 				</tr>
 				<tr>
-					<td>게시글2_test</td>
+					<td>Board Load.....</td>
 				</tr>
 				<tr>
-					<td>게시글3_test</td>
-				</tr>
-				<tr>
-					<td>게시글4_test</td>
+					<td>Board Load.......</td>
 				</tr>
 			</tbody>
 		</table>

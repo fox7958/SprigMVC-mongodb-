@@ -2,6 +2,7 @@ package com.mayfarm.test;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -11,7 +12,10 @@ import javax.inject.Inject;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.json.JSONObject;
+import org.omg.CORBA.PUBLIC_MEMBER;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,6 +27,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.mayfarm.elastic.CURD.ElasticDELETE;
+import com.mayfarm.elastic.CURD.ElasticGET;
+import com.mayfarm.elastic.CURD.ElasticINSERT;
+import com.mayfarm.elastic.CURD.ElasticSEARCH;
 import com.mayfarm.test.vo.BoardVO;
 import com.mayfarm.user.Service.TestService;
 import com.mayfarm.user.bean.TestBean;
@@ -37,13 +45,27 @@ import com.mongodb.client.model.Filters;
  * Handles requests for the application home page.
  */
 @Controller
-public class HomeController {
+public class HomeController{
+	
+	/**
+	 * Elasticsearch host, username, password, ssl 위치 정보
+	 * */
+	final List<String> esAddress = new ArrayList<String>();
+	final String esHost = "localhost:9200";
+	final String esUserName = "elastic";
+	final String esPassword = "pwWYgu19mNCcYk7FRi7e";
+	final String esSSl = "D:/main/ES-master/config/certs/ca/ca.crt";
 	
 	/**
 	 * MariaDB Connect
 	 * */
 	@Inject
 	TestService service;
+	
+	@Autowired
+	private ElasticDELETE elasticDELETE;
+	
+	
 	
 	@RequestMapping(value="/test", method=RequestMethod.GET)
 	public String test(Model model) throws Exception{
@@ -95,6 +117,7 @@ public class HomeController {
 	 */
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home() {
+		esAddress.add(esHost);
 		return "index";
 	}
 	@RequestMapping(value = "/uesr/main.do")
@@ -126,8 +149,10 @@ public class HomeController {
 		System.out.println("list.do====");
 		Map<String, Object> map = new HashMap<String, Object>();
 		List<BoardVO> list = new ArrayList<BoardVO>();
-
+		
 		MongoCursor<Document> cursor = collection.find().sort(Filters.eq("date", -1)).iterator();	//전체 데이터를 조회할때 날짜순으로 가져옴
+		
+		String elasticID = null; 
 		
 		try {
 			for(int i = 0; i < collection.countDocuments(); i++) {
@@ -140,6 +165,7 @@ public class HomeController {
 					String content = jsonObject.optString("content");
 					String date = jsonObject.optString("date");
 					String id = jsonObject.optString("_id").substring(9,33);
+					elasticID = id;
 					
 					System.out.println(jsonObject.optString("_id"));
 					
@@ -147,7 +173,7 @@ public class HomeController {
 					board.setTitle(title);
 					board.setContent(content);
 					board.setDate(date);
-					board.setId(id);				
+					board.setId(id);
 					
 					list1.add(board);
 				}
@@ -157,6 +183,12 @@ public class HomeController {
 			cursor.close();
 		}
 		map.put("list", list);
+		
+		/**
+		 * ElasticSearch TEST
+		 * */
+		//System.out.println("elasitcID ==== "+elasticID);
+		//ElasticSEARCH.sourceAsMap(esAddress, esUserName, esPassword, esSSl, "board-test", "안녕");
 		return map;
 	}
 	/**
@@ -170,6 +202,7 @@ public class HomeController {
 			@RequestParam(value="content", required = false, defaultValue = "") String content) throws Exception{
 		System.out.println("add.do====");
 		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, String> elasticBoard = new HashMap<String, String>();
 		
 		long systemTime = System.currentTimeMillis();
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.KOREA);
@@ -179,9 +212,20 @@ public class HomeController {
 			Document doc = new Document("title", title).append("content", content).append("date", date);
 			collection.insertOne(doc);
 			
+			elasticBoard.put("title", title);
+			elasticBoard.put("content", content);
+			elasticBoard.put("date", date);
+			
 			map.put("returnCode", "success");
-			map.put("returnDesc", "데이터가 정상적으로 등록되었습니다."); 
+			map.put("returnDesc", "Mongo:데이터가 정상적으로 등록되었습니다."); 
 			System.out.println(map.get("returnCode"));
+			
+			ObjectId mongoId = doc.getObjectId("_id");
+			System.out.println("MongoID : " + mongoId);
+			elasticBoard.put("docId", mongoId.toString());
+			
+			ElasticINSERT.sourceAsMap(esAddress, esUserName, esPassword, esSSl, "board-test", elasticBoard);
+			
 		} catch (Exception e) {
 			map.put("returnCode", "failed");
 			map.put("returnDesc", "데이터 등록에 실패하였습니다.");
@@ -212,12 +256,15 @@ public class HomeController {
 				
 				map.put("returnCode", "success");
 				map.put("returnDesc", "데이터가 정상적으로 삭제되었습니다.");
+				
+				
+				elasticDELETE.sourceAsMap("board-test", id);
 			}
 		} catch (Exception e) {
 			map.put("returnCode", "failed");
 			map.put("returnDesc", "데이터 삭제에 실패하였습니다.");
 		}
-		return map;
+		return map;		
 	}
 	/**
 	 * MongoDB 같은 Id값 찾아서 수정
@@ -260,7 +307,6 @@ public class HomeController {
 		return map;
 	}
 }
-
 
 
 
