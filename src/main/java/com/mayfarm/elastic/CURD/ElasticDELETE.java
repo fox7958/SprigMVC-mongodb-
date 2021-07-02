@@ -44,7 +44,7 @@ public class ElasticDELETE {
 			System.out.println(response.getResult() + " 문서 삭제 성공");
 
 		} catch (Exception e) {
-
+			
 			e.printStackTrace();
 			System.out.println("문서 삭제 실패");
 
